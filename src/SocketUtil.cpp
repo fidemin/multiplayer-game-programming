@@ -4,8 +4,6 @@
 
 using namespace std;
 
-using UDPSocketPtr = shared_ptr<UDPSocket>;
-
 class SocketUtil {
 public:
     static void ReportError(const wchar_t* inOperationDesc);
