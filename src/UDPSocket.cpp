@@ -2,6 +2,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include "SocketAddress.cpp"
 #include "SocketUtil.cpp"
 
@@ -23,6 +24,7 @@ public:
     int Bind(const SocketAddress& bindAddress);
     int SendTo(const void* buffer, int length, const SocketAddress& toAddress);
     int ReceiveFrom(void* buffer, int length, SocketAddress& fromAddress);
+    int SetNonBlockingMode(bool shouldBeNonBlocking);
 private:
     UDPSocket(int socket) : mSocket(socket) {}
     int mSocket;
@@ -71,6 +73,26 @@ int UDPSocket::ReceiveFrom(void* buffer, int length, SocketAddress& fromAddress)
     SocketUtil::ReportError(L"UDPSocket::ReceiveFrom");
     // return negative value to indicate failure, and the value is the error code
     return -SocketUtil::GetLastError();
+}
+
+int UDPSocket::SetNonBlockingMode(bool shouldBeNonBlocking) {
+    int nonBlockingFlag = shouldBeNonBlocking ? 1 : 0;
+    int flags = fcntl(mSocket, F_GETFL, 0);
+
+    if (flags < 0) {
+        SocketUtil::ReportError(L"UDPSocket::SetNonBlockingMode - F_GETFL");
+        return SocketUtil::GetLastError();
+    }
+
+    flags = shouldBeNonBlocking ? (flags | O_NONBLOCK) : (flags & ~O_NONBLOCK);
+    int err = fcntl(mSocket, F_SETFL, flags);
+
+    if (err == 0) {
+        return 0;
+    }
+
+    SocketUtil::ReportError(L"UDPSocket::SetNonBlockingMode");
+    return SocketUtil::GetLastError();
 }
 
 UDPSocket::~UDPSocket() {
