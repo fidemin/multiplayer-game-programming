@@ -2,7 +2,7 @@
 //
 // Build: g++ -std=c++14 -o echo_server.o examples/echo_server.cpp
 // Usage:
-//   Server: ./echo_server.o
+//   Server: ./echo_server.o [buffer_size]
 //   Client: nc localhost 8080
 //
 // The server uses select() via SocketSelectUtil to handle multiple TCP clients
@@ -15,9 +15,16 @@
 #include "../src/SocketSelectUtil.cpp"
 
 static const uint16_t SERVER_PORT = 8080;
-static const int      BUFFER_SIZE = 1024;
+static const int      DEFAULT_BUFFER_SIZE = 1024;
 
-int main() {
+int main(int argc, char* argv[]) {
+    int bufferSize = (argc >= 2) ? atoi(argv[1]) : DEFAULT_BUFFER_SIZE;
+    if (bufferSize <= 0) {
+        wprintf(L"Invalid buffer size: %hs\n", argv[1]);
+        return 1;
+    }
+    wprintf(L"Buffer size: %d\n", bufferSize);
+
     // Create listening socket
     TCPSocketPtr listenSocket = TCPSocket::Create();
     if (!listenSocket) return 1;
@@ -57,8 +64,8 @@ int main() {
                 }
             } else {
                 // Existing client has data
-                char buf[BUFFER_SIZE];
-                int bytesReceived = sock->Receive(buf, sizeof(buf));
+                vector<char> buf(bufferSize);
+                int bytesReceived = sock->Receive(buf.data(), bufferSize);
 
                 if (bytesReceived <= 0) {
                     // Client disconnected or error
@@ -70,9 +77,9 @@ int main() {
                         readSet.end());
                 } else {
                     // print received message
-                    wprintf(L"Received %d bytes: %.*hs\n", bytesReceived, bytesReceived, buf);
+                    wprintf(L"Received %d bytes: %.*hs\n", bytesReceived, bytesReceived, buf.data());
                     // Echo the received message back to the client
-                    sock->Send(buf, bytesReceived);
+                    sock->Send(buf.data(), bytesReceived);
                 }
             }
         }
