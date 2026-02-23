@@ -13,6 +13,7 @@ using TCPSocketPtr = std::shared_ptr<TCPSocket>;
 
 class TCPSocket {
     public:
+        static TCPSocketPtr Create();
         ~TCPSocket();
         int Connect(const SocketAddress& inAddress);
         int Bind(const SocketAddress& inBindAddress);
@@ -25,6 +26,17 @@ class TCPSocket {
         int mSocket; // socket for connect and listen. accepted sockets are created as new TCPSocket instances.
         TCPSocket(int inSocket) : mSocket(inSocket) {}
 };
+
+TCPSocketPtr TCPSocket::Create() {
+    int fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (fd < 0) {
+        SocketUtil::ReportError(L"TCPSocket::Create");
+        return nullptr;
+    }
+    int yes = 1;
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+    return TCPSocketPtr(new TCPSocket(fd));
+}
 
 int TCPSocket::Connect(const SocketAddress& inAddress) {
     int err = connect(mSocket, &inAddress.mSockAddr, inAddress.GetSize());

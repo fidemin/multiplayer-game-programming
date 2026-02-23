@@ -71,3 +71,8 @@ Testing/
 # IDE specific files
 .vscode
 .idea
+
+# build artifacts
+*.o
+*.out
+*.obj
