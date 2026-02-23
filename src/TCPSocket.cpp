@@ -21,6 +21,7 @@ class TCPSocket {
         int Send(const void* inData, int inLen);
         int Receive(void* inBuffer, int inLen);
     private:
+        friend class SocketSelectUtil;
         int mSocket; // socket for connect and listen. accepted sockets are created as new TCPSocket instances.
         TCPSocket(int inSocket) : mSocket(inSocket) {}
 };
