@@ -58,7 +58,8 @@ int main() {
             } else {
                 // Existing client has data
                 char buf[BUFFER_SIZE];
-                int bytesReceived = sock->Receive(buf, sizeof(buf));
+                // Receive data from client. sizeof(buf) - 1 to leave space for null terminator
+                int bytesReceived = sock->Receive(buf, sizeof(buf) - 1);
 
                 if (bytesReceived <= 0) {
                     // Client disconnected or error
@@ -69,7 +70,9 @@ int main() {
                         remove(readSet.begin(), readSet.end(), sock),
                         readSet.end());
                 } else {
-                    wprintf(L"Received %d bytes: %s", bytesReceived, buf);
+                    // Null-terminate and print the received message
+                    buf[bytesReceived] = '\0';
+                    wprintf(L"Received %d bytes: %hs\n", bytesReceived, buf);
                     // Echo back
                     sock->Send(buf, bytesReceived);
                 }
