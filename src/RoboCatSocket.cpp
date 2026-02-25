@@ -7,7 +7,7 @@ class RoboCatSocket {
     public:
     void static SendRoboCat(int inSocket, const RoboCat* inRoboCat) {
         OutputMemoryStream outStream;
-        inRoboCat->Write(outStream);
+        inRoboCat->Serialize(outStream);
 
         uint32_t dataLength = outStream.GetLength();
         const char* dataBuffer = outStream.GetBufferPtr();
@@ -32,6 +32,6 @@ class RoboCatSocket {
         }
 
         InputMemoryStream inStream(buffer, bytesReceived);
-        outRoboCat->Read(inStream);
+        outRoboCat->Deserialize(inStream);
     }
 };

@@ -3,11 +3,11 @@
 #include <vector>
 #include <string>
 #include "GameObject.cpp"
-#include "OutputMemoryStream.cpp"
-#include "InputMemoryStream.cpp"
+#include "Serializer.cpp"
+#include "Deserializer.cpp"
 
 
-class RoboCat: public GameObject {
+class RoboCat: public GameObject, public Serializer, public Deserializer {
     public:
         RoboCat(): mHealth(10), mMeowCount(3), mHomeBase(0) {}
 
@@ -16,8 +16,8 @@ class RoboCat: public GameObject {
         void SetName(const std::string& inName) { mName = inName; }
 
         std::string GetDescription() const;
-        void Write(OutputMemoryStream& inStream) const;
-        void Read(InputMemoryStream& inStream);
+        void Serialize(OutputMemoryStream& inStream) const override;
+        void Deserialize(InputMemoryStream& inStream) override;
 
     private:
         int32_t mHealth;
@@ -35,7 +35,7 @@ std::string RoboCat::GetDescription() const {
             ", miceCount=" + std::to_string(mMiceIndices.size());
 }
 
-void RoboCat::Write(OutputMemoryStream& inStream) const {
+void RoboCat::Serialize(OutputMemoryStream& inStream) const {
     inStream.Write(mHealth);
     inStream.Write(mMeowCount);
     // TODO: mHomeBase need to be handled
@@ -43,7 +43,7 @@ void RoboCat::Write(OutputMemoryStream& inStream) const {
     // TODO: mMiceIndices need to be handled
 }
 
-void RoboCat::Read(InputMemoryStream& inStream) {
+void RoboCat::Deserialize(InputMemoryStream& inStream) {
     inStream.Read(mHealth);
     inStream.Read(mMeowCount);
     // TODO: mHomeBase need to be handled

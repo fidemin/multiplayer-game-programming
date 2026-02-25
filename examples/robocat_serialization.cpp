@@ -21,7 +21,7 @@ int main() {
     wprintf(L"[Sender] %hs\n", sender.GetDescription().c_str());
 
     OutputMemoryStream outStream;
-    sender.Write(outStream);
+    sender.Serialize(outStream);
 
     wprintf(L"[Sender] Serialized %u bytes\n", outStream.GetLength());
 
@@ -29,7 +29,7 @@ int main() {
     InputMemoryStream inStream(outStream.GetBufferPtr(), outStream.GetLength());
 
     RoboCat receiver;
-    receiver.Read(inStream);
+    receiver.Deserialize(inStream);
 
     wprintf(L"[Receiver] %hs\n", receiver.GetDescription().c_str());
 
