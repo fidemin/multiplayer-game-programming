@@ -20,7 +20,7 @@ class OutputMemoryStream {
             Write(&inData, sizeof(inData));
         }
 
-        void WriteStr(const std::string& inString) {
+        void Write(const std::string& inString) {
             uint32_t stringLength = static_cast<uint32_t>(inString.size());
             Write(stringLength);
             Write(inString.c_str(), stringLength);

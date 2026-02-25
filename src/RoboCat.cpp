@@ -39,7 +39,7 @@ void RoboCat::Write(OutputMemoryStream& inStream) const {
     inStream.Write(mHealth);
     inStream.Write(mMeowCount);
     // TODO: mHomeBase need to be handled
-    inStream.WriteStr(mName);
+    inStream.Write(mName);
     // TODO: mMiceIndices need to be handled
 }
 
@@ -47,6 +47,6 @@ void RoboCat::Read(InputMemoryStream& inStream) {
     inStream.Read(mHealth);
     inStream.Read(mMeowCount);
     // TODO: mHomeBase need to be handled
-    inStream.ReadStr(mName);
+    inStream.Read(mName);
     // TODO: mMiceIndices need to be handled
 }

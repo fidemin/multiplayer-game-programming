@@ -18,12 +18,13 @@ class InputMemoryStream {
         };
 
         void Read(void* outData, size_t inByteCount);
-        void ReadStr(std::string& outString) {
+        void Read(std::string& outString) {
             uint32_t stringLength;
             Read(stringLength);
             outString.resize(stringLength);
             Read(&outString[0], stringLength);
         }
+        
         template<typename T> void Read(T& outData) {
             static_assert(std::is_arithmetic<T>::value || std::is_enum<T>::value, "InputMemoryStream::Read<T> requires an arithmetic or enum type");
             Read(&outData, sizeof(outData));
@@ -32,6 +33,8 @@ class InputMemoryStream {
         char* mBuffer;
         uint32_t mHead;
         uint32_t mCapacity;
+
+        
 };
 
 void InputMemoryStream::Read(void* outData, size_t inByteCount) {
