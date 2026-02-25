@@ -1,7 +1,7 @@
 
 #include <cstdint>
 #include <vector>
-#include <string>
+#include <cstring>
 #include "GameObject.cpp"
 #include "OutputMemoryStream.cpp"
 #include "InputMemoryStream.cpp"
@@ -16,8 +16,14 @@ class RoboCat: public GameObject {
         void SetHealth(int32_t inHealth) { mHealth = inHealth; }
         void SetMeowCount(int32_t inMeowCount) { mMeowCount = inMeowCount; }
         void SetName(const char* inName) {
-            strncpy(mName, inName, sizeof(mName) - 1);
-            mName[sizeof(mName) - 1] = '\0';
+            size_t nameLength = strlen(inName);
+            if (nameLength >= sizeof(mName)) {
+                wprintf(L"RoboCat::SetName - name too long, truncating to fit\n");
+                nameLength = sizeof(mName) - 1;
+            }
+
+            memcpy(mName, inName, nameLength);
+            mName[nameLength] = '\0'; // ensure null-termination
         }
 
         std::string GetDescription() const;
