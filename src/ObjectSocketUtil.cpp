@@ -5,7 +5,7 @@
 
 class ObjectSocketUtil {
     public:
-    static void Send(int inSocket, const Serializer* inObject) {
+    static int Send(int inSocket, const Serializer* inObject) {
         OutputMemoryStream outStream;
         inObject->Serialize(outStream);
 
@@ -15,23 +15,25 @@ class ObjectSocketUtil {
         int bytesSent = send(inSocket, dataBuffer, dataLength, 0);
         if (bytesSent < 0) {
             ErrorUtil::ReportError(L"ObjectSocket::Send - send failed");
-            return;
+            return bytesSent;
         }
         if (bytesSent != static_cast<int>(dataLength)) {
             wprintf(L"ObjectSocket::Send - sent %d of %d bytes\n", bytesSent, dataLength);
         }
+        return bytesSent;
     }
 
-    static void Receive(int inSocket, Deserializer* outObject) {
+    static int Receive(int inSocket, Deserializer* outObject) {
         const uint32_t bufferSize = 1470; // typical MTU size for Ethernet - IP header - TCP header
         char buffer[bufferSize];
         int bytesReceived = recv(inSocket, buffer, sizeof(buffer), 0);
         if (bytesReceived < 0) {
             ErrorUtil::ReportError(L"ObjectSocket::Receive - recv failed");
-            return;
+            return bytesReceived;
         }
 
         InputMemoryStream inStream(buffer, bytesReceived);
         outObject->Deserialize(inStream);
+        return bytesReceived;
     }
 };
