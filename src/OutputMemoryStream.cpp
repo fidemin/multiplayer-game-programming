@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
+#include <string>
 #include "ErrorUtil.cpp"
 
 class OutputMemoryStream {
@@ -18,6 +19,13 @@ class OutputMemoryStream {
             static_assert(std::is_arithmetic<T>::value || std::is_enum<T>::value, "OutputMemoryStream::Write<T> requires an arithmetic or enum type");
             Write(&inData, sizeof(inData));
         }
+
+        void WriteStr(const std::string& inString) {
+            uint32_t stringLength = static_cast<uint32_t>(inString.size());
+            Write(stringLength);
+            Write(inString.c_str(), stringLength);
+        }
+        
         char* GetBufferPtr() const { return mBuffer; }
         uint32_t GetLength() const { return mHead; }
     private:

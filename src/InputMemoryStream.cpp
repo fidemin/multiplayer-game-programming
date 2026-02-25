@@ -2,6 +2,7 @@
 #include <memory>
 #include <cstring>
 #include <stdexcept>
+#include <string>
 
 class InputMemoryStream {
     public:
@@ -17,6 +18,12 @@ class InputMemoryStream {
         };
 
         void Read(void* outData, size_t inByteCount);
+        void ReadStr(std::string& outString) {
+            uint32_t stringLength;
+            Read(stringLength);
+            outString.resize(stringLength);
+            Read(&outString[0], stringLength);
+        }
         template<typename T> void Read(T& outData) {
             static_assert(std::is_arithmetic<T>::value || std::is_enum<T>::value, "InputMemoryStream::Read<T> requires an arithmetic or enum type");
             Read(&outData, sizeof(outData));
