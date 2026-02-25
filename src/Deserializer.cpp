@@ -1,4 +1,4 @@
-
+#pragma once
 #include "InputMemoryStream.cpp"
 
 class Deserializer {

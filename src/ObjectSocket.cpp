@@ -1,37 +1,37 @@
-
-
-#include "RoboCat.cpp"
+#pragma once
 #include <sys/socket.h>
+#include "Serializer.cpp"
+#include "Deserializer.cpp"
 
-class RoboCatSocket {
+class ObjectSocketUtil {
     public:
-    void static SendRoboCat(int inSocket, const RoboCat* inRoboCat) {
+    static void Send(int inSocket, const Serializer* inObject) {
         OutputMemoryStream outStream;
-        inRoboCat->Serialize(outStream);
+        inObject->Serialize(outStream);
 
         uint32_t dataLength = outStream.GetLength();
         const char* dataBuffer = outStream.GetBufferPtr();
 
         int bytesSent = send(inSocket, dataBuffer, dataLength, 0);
         if (bytesSent < 0) {
-            ErrorUtil::ReportError(L"RoboCatSocket::SendRoboCat - send length");
+            ErrorUtil::ReportError(L"ObjectSocket::Send - send failed");
             return;
         }
-        if (bytesSent != dataLength) {
-            wprintf(L"RoboCatSocket::SendRoboCat - sent %d of %d bytes\n", bytesSent, dataLength);
+        if (bytesSent != static_cast<int>(dataLength)) {
+            wprintf(L"ObjectSocket::Send - sent %d of %d bytes\n", bytesSent, dataLength);
         }
     }
 
-    static void ReceiveRoboCat(int inSocket, RoboCat* outRoboCat) {
+    static void Receive(int inSocket, Deserializer* outObject) {
         const uint32_t bufferSize = 1470; // typical MTU size for Ethernet - IP header - TCP header
         char buffer[bufferSize];
         int bytesReceived = recv(inSocket, buffer, sizeof(buffer), 0);
         if (bytesReceived < 0) {
-            ErrorUtil::ReportError(L"RoboCatSocket::ReceiveRoboCat - recv length");
+            ErrorUtil::ReportError(L"ObjectSocket::Receive - recv failed");
             return;
         }
 
         InputMemoryStream inStream(buffer, bytesReceived);
-        outRoboCat->Deserialize(inStream);
+        outObject->Deserialize(inStream);
     }
 };

@@ -1,16 +1,16 @@
-// robocat_socket.cpp - Demonstrates RoboCatSocket send and receive over a socket pair
+// robocat_socket.cpp - Demonstrates GameObjectSocket send and receive over a socket pair
 //
 // Build: g++ -std=c++14 -o robocat_socket.o examples/robocat_socket.cpp
 // Usage: ./robocat_socket.o
 //
 // Uses socketpair() to create a connected pair of file descriptors that act as
-// a local network connection. The sender serializes a RoboCat and sends it;
-// the receiver reads from the other end and deserializes it.
+// a local network connection. GameObjectSocket works with any Serializer/Deserializer.
 
 #include <cstdio>
 #include <unistd.h>
 #include <sys/socket.h>
-#include "../src/RoboCatSocket.cpp"
+#include "../src/RoboCat.cpp"
+#include "../src/ObjectSocket.cpp"
 
 int main() {
     // Create a connected socket pair: fds[0] = sender, fds[1] = receiver
@@ -28,12 +28,12 @@ int main() {
 
     wprintf(L"[Sender]   %hs\n", sender.GetDescription().c_str());
 
-    RoboCatSocket::SendRoboCat(fds[0], &sender);
+    ObjectSocketUtil::Send(fds[0], &sender);
     wprintf(L"[Sender]   RoboCat sent.\n");
 
     // --- Receiver side ---
     RoboCat receiver;
-    RoboCatSocket::ReceiveRoboCat(fds[1], &receiver);
+    ObjectSocketUtil::Receive(fds[1], &receiver);
 
     wprintf(L"[Receiver] %hs\n", receiver.GetDescription().c_str());
 
