@@ -19,6 +19,14 @@ class LinkingContext {
             return 0; // 0 can be reserved for "not found"
         }
 
+        GameObject* GetGameObject(uint32_t inId) const {
+            auto it = mIdToGameObjectMap.find(inId);
+            if (it != mIdToGameObjectMap.end()) {
+                return it->second;
+            }
+            return nullptr;
+        }
+
         void AddGameObject(uint32_t inId, GameObject* inGameObject) {
             if (inId == 0) {
                 throw std::invalid_argument("ID 0 is reserved for 'not found'");

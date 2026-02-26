@@ -37,6 +37,8 @@ class InputMemoryBitStream {
             ReadBits(&outData, inBitCount);
         }
 
+        uint32_t GetRemainingBitCount() const { return mBitCapacity - mBitHead;}
+
     private:
         char* mBuffer;
         uint32_t mBitHead;

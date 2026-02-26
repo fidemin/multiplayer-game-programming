@@ -8,7 +8,9 @@
 #define CLASS_IDENIFICATION(inCode, inClass) \
     enum { kClassId = inCode }; \
     virtual uint32_t GetClassId() const { return kClassId; } \
+    virtual void Destroy() { delete this; } \
     static GameObject* CreateInstance() { return new inClass(); }
+
 
 class GameObject: public Serializer, public Deserializer {
     public:
