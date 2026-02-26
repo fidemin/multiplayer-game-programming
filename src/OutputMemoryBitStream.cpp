@@ -13,8 +13,8 @@ class OutputMemoryBitStream {
         }
 
         void WriteBits(const void* inData, size_t inBitCount);
-        void WriteBits(uint8_t inData, size_t inBitCount);
-        void WriteBits(bool inData) { WriteBits(inData ? 1 : 0, 1); }
+        void WriteBits(const uint8_t inData, size_t inBitCount);
+        void WriteBits(const bool& inData) { WriteBits(inData ? 1 : 0, 1); }
         template<typename T> void WriteBits(const T& inData, size_t inBitCount) {
             static_assert(std::is_arithmetic<T>::value || std::is_enum<T>::value, "OutputMemoryBitStream::WriteBits<T> requires an arithmetic or enum type");
             WriteBits(&inData, inBitCount);
