@@ -9,9 +9,11 @@
 
 #include <cstdio>
 #include <cstring>
+#include "../src/ObjectCreationRegistry.cpp"
 #include "../src/RoboCat.cpp"
 
 int main() {
+    RegisterGameObjectCreationFunctions();
     // --- Sender side ---
     RoboCat sender;
     sender.SetHealth(42);
@@ -28,10 +30,12 @@ int main() {
     // --- Receiver side ---
     InputMemoryStream inStream(outStream.GetBufferPtr(), outStream.GetLength());
 
-    RoboCat receiver;
-    receiver.Deserialize(inStream);
+    GameObject* receiver = ObjectCreationRegistry::GetInstance().CreateGameObject(RoboCat::kClassId);
+    receiver->Deserialize(inStream);
 
-    wprintf(L"[Receiver] %hs\n", receiver.GetDescription().c_str());
+    wprintf(L"[Receiver] %hs\n", receiver->GetDescription().c_str());
+
+    delete receiver;
 
     return 0;
 }

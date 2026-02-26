@@ -8,7 +8,7 @@
 #include "Deserializer.cpp"
 
 
-class RoboCat: public GameObject, public Serializer, public Deserializer {
+class RoboCat: public GameObject {
     public:
         CLASS_IDENIFICATION('RCAT', RoboCat)
         RoboCat(): mHealth(10), mMeowCount(3), mHomeBase(0) {}
