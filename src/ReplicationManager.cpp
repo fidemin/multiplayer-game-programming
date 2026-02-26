@@ -7,9 +7,13 @@
 
 class ReplicationManager {
     public:
-        ReplicationManager() {};
+        ReplicationManager(LinkingContext* inLinkingContext) : mLinkingContext(inLinkingContext) {};
         void ReplicateWorld(OutputMemoryBitStream& inStream, std::vector<GameObject*>& gameObjects);
         void ReceiveWorld(InputMemoryBitStream& inStream);
+
+        std::unordered_set<GameObject*> GetObjectsInWorld() const {
+            return mReplicatedObjects;
+        }
     
     private:
         void ReplicateGameObject(OutputMemoryBitStream& inStream, GameObject* inGameObject);
@@ -20,6 +24,7 @@ class ReplicationManager {
 
 void ReplicationManager::ReplicateWorld(OutputMemoryBitStream& inStream, std::vector<GameObject*>& gameObjects) {
     inStream.WriteBits(PT_ReplicationData, GetRequiredBits(PT_MAX));
+    inStream.Write(static_cast<uint32_t>(gameObjects.size())); // Write the number of objects being replicated
 
     for (GameObject* gameObject : gameObjects) {
         ReplicateGameObject(inStream, gameObject);
@@ -29,22 +34,25 @@ void ReplicationManager::ReplicateWorld(OutputMemoryBitStream& inStream, std::ve
 void ReplicationManager::ReceiveWorld(InputMemoryBitStream& inStream) {
     uint32_t packetType;
     inStream.ReadBits(&packetType, GetRequiredBits(PT_MAX));
+    uint32_t objectCount;
+    inStream.Read(objectCount);
+
     std::unordered_set<GameObject*> receivedObjects;
 
     if (packetType == PT_ReplicationData) {
-        while (inStream.GetRemainingBitCount() > 0) {
-            GameObject* thisGameObject = RecieveGameObject(inStream);
-            receivedObjects.insert(thisGameObject);
+        for (uint32_t i = 0; i < objectCount; ++i) {
+             GameObject* thisGameObject = RecieveGameObject(inStream);
+             receivedObjects.insert(thisGameObject);
         }
 
         for (GameObject* gameObject : mReplicatedObjects) {
             if (receivedObjects.find(gameObject) == receivedObjects.end()) {
                 // Handle objects that are no longer present
                 mLinkingContext->RemoveGameObject(gameObject);
-                // TODO: consider adding a "destroy" method to GameObject for proper cleanup instead of directly calling the destructor
                 gameObject->Destroy();
             }
         }
+        mReplicatedObjects = receivedObjects;
 
     } else if (packetType == PT_Hello) {
         // TODO: Handle other packet types as needed
