@@ -10,13 +10,14 @@
 
 class RoboCat: public GameObject, public Serializer, public Deserializer {
     public:
+        CLASS_IDENIFICATION('RCAT', RoboCat)
         RoboCat(): mHealth(10), mMeowCount(3), mHomeBase(0) {}
 
         void SetHealth(int32_t inHealth) { mHealth = inHealth; }
         void SetMeowCount(int32_t inMeowCount) { mMeowCount = inMeowCount; }
         void SetName(const std::string& inName) { mName = inName; }
 
-        std::string GetDescription() const;
+        std::string GetDescription() const override;
         void Serialize(OutputMemoryStream& inStream) const override;
         void Deserialize(InputMemoryStream& inStream) override;
 
