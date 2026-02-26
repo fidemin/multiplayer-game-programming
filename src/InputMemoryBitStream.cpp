@@ -2,6 +2,7 @@
 #pragma once
 #include <cstdlib>
 #include <memory>
+#include <string>
 
 class InputMemoryBitStream {
     public:
@@ -19,14 +20,21 @@ class InputMemoryBitStream {
 
         void ReadBits(void* outData, size_t inBitCount);
         void ReadBits(uint8_t& outData, size_t inBitCount);
-        void ReadBits(bool& outData) {
+        void Read(bool& outData) {
             uint8_t byteData;
             ReadBits(byteData, 1);
             outData = (byteData != 0);
         }
-        template<typename T> void ReadBits(T& outData, size_t inBitCount) {
+        void Read(std::string& outString) {
+            uint32_t stringLength;
+            Read(stringLength);
+            outString.resize(stringLength);
+            ReadBits(&outString[0], stringLength * 8);
+        }
+
+        template<typename T> void Read(T& outData, size_t inBitCount = sizeof(T) * 8) {
             static_assert(std::is_arithmetic<T>::value || std::is_enum<T>::value, "InputMemoryBitStream::ReadBits<T> requires an arithmetic or enum type");
-            ReadBits(outData, inBitCount);
+            ReadBits(&outData, inBitCount);
         }
 
     private:

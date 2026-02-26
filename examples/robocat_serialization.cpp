@@ -22,13 +22,13 @@ int main() {
 
     wprintf(L"[Sender] %hs\n", sender.GetDescription().c_str());
 
-    OutputMemoryStream outStream;
+    OutputMemoryBitStream outStream;
     sender.Serialize(outStream);
 
-    wprintf(L"[Sender] Serialized %u bytes\n", outStream.GetLength());
+    wprintf(L"[Sender] Serialized %u bytes\n", outStream.GetByteLength());
 
     // --- Receiver side ---
-    InputMemoryStream inStream(outStream.GetBufferPtr(), outStream.GetLength());
+    InputMemoryBitStream inStream(outStream.GetBufferPtr(), outStream.GetBitLength());
 
     GameObject* receiver = ObjectCreationRegistry::GetInstance().CreateGameObject(RoboCat::kClassId);
     receiver->Deserialize(inStream);

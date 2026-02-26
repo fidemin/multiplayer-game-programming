@@ -14,10 +14,10 @@ class GameObject: public Serializer, public Deserializer {
     public:
         CLASS_IDENIFICATION('GOBJ', GameObject)
         virtual std::string GetDescription() const { return "GameObject(" + std::to_string(GetClassId()) + ")"; }
-        virtual void Serialize(OutputMemoryStream& inStream) const override {
+        virtual void Serialize(OutputMemoryBitStream& inStream) const override {
             // TODO: implement serialization of GameObject's state, if any
         }
-        virtual void Deserialize(InputMemoryStream& inStream) override {
+        virtual void Deserialize(InputMemoryBitStream& inStream) override {
             // TODO: implement deserialization of GameObject's state, if any
         }
 };

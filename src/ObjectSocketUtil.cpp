@@ -2,14 +2,15 @@
 #include <sys/socket.h>
 #include "Serializer.cpp"
 #include "Deserializer.cpp"
+#include "ErrorUtil.cpp"
 
 class ObjectSocketUtil {
     public:
     static int Send(int inSocket, const Serializer* inObject) {
-        OutputMemoryStream outStream;
+        OutputMemoryBitStream outStream;
         inObject->Serialize(outStream);
 
-        uint32_t dataLength = outStream.GetLength();
+        uint32_t dataLength = outStream.GetByteLength();
         const char* dataBuffer = outStream.GetBufferPtr();
 
         int bytesSent = send(inSocket, dataBuffer, dataLength, 0);
@@ -32,7 +33,7 @@ class ObjectSocketUtil {
             return bytesReceived;
         }
 
-        InputMemoryStream inStream(buffer, bytesReceived);
+        InputMemoryBitStream inStream(buffer, bytesReceived * 8);
         outObject->Deserialize(inStream);
         return bytesReceived;
     }

@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 #include "../src/RoboCat.cpp"
 #include "../src/ObjectSocketUtil.cpp"
+#include "../src/ErrorUtil.cpp"
 
 int main() {
     // Create a connected socket pair: fds[0] = sender, fds[1] = receiver

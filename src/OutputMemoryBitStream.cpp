@@ -2,6 +2,7 @@
 #pragma once
 #include <cstdlib>
 #include <memory>
+#include <string>
 
 class OutputMemoryBitStream {
     public:
@@ -14,8 +15,13 @@ class OutputMemoryBitStream {
 
         void WriteBits(const void* inData, size_t inBitCount);
         void WriteBits(const uint8_t inData, size_t inBitCount);
-        void WriteBits(const bool& inData) { WriteBits(inData ? 1 : 0, 1); }
-        template<typename T> void WriteBits(const T& inData, size_t inBitCount) {
+        void Write(const bool& inData) { WriteBits(inData ? 1 : 0, 1); }
+        void Write(const std::string& inString) {
+            uint32_t stringLength = static_cast<uint32_t>(inString.size());
+            Write(stringLength);
+            WriteBits(inString.c_str(), stringLength * 8);
+        }
+        template<typename T> void Write(const T& inData, size_t inBitCount = sizeof(T) * 8) {
             static_assert(std::is_arithmetic<T>::value || std::is_enum<T>::value, "OutputMemoryBitStream::WriteBits<T> requires an arithmetic or enum type");
             WriteBits(&inData, inBitCount);
         }

@@ -8,7 +8,7 @@
 #include "Deserializer.cpp"
 
 
-class RoboCat: public GameObject {
+class RoboCat: public GameObject{
     public:
         CLASS_IDENIFICATION('RCAT', RoboCat)
         RoboCat(): mHealth(10), mMeowCount(3), mHomeBase(0) {}
@@ -18,8 +18,8 @@ class RoboCat: public GameObject {
         void SetName(const std::string& inName) { mName = inName; }
 
         std::string GetDescription() const override;
-        void Serialize(OutputMemoryStream& inStream) const override;
-        void Deserialize(InputMemoryStream& inStream) override;
+        void Serialize(OutputMemoryBitStream& inStream) const override;
+        void Deserialize(InputMemoryBitStream& inStream) override;
 
     private:
         int32_t mHealth;
@@ -37,7 +37,7 @@ std::string RoboCat::GetDescription() const {
             ", miceCount=" + std::to_string(mMiceIndices.size());
 }
 
-void RoboCat::Serialize(OutputMemoryStream& inStream) const {
+void RoboCat::Serialize(OutputMemoryBitStream& inStream) const {
     inStream.Write(mHealth);
     inStream.Write(mMeowCount);
     // TODO: mHomeBase need to be handled
@@ -45,7 +45,7 @@ void RoboCat::Serialize(OutputMemoryStream& inStream) const {
     // TODO: mMiceIndices need to be handled
 }
 
-void RoboCat::Deserialize(InputMemoryStream& inStream) {
+void RoboCat::Deserialize(InputMemoryBitStream& inStream) {
     inStream.Read(mHealth);
     inStream.Read(mMeowCount);
     // TODO: mHomeBase need to be handled

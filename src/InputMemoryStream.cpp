@@ -5,16 +5,16 @@
 #include <stdexcept>
 #include <string>
 
-class InputMemoryStream {
+class InputMemoryBitStream {
     public:
-        InputMemoryStream(const char* inBuffer, size_t inByteCount) : mHead(0), mCapacity(static_cast<uint32_t>(inByteCount)) {
+        InputMemoryBitStream(const char* inBuffer, size_t inByteCount) : mHead(0), mCapacity(static_cast<uint32_t>(inByteCount)) {
             mBuffer = static_cast<char*>(std::malloc(inByteCount));
             if (mBuffer == nullptr) {
                 throw std::bad_alloc();
             }
             std::memcpy(mBuffer, inBuffer, inByteCount);
         }
-        ~InputMemoryStream() {
+        ~InputMemoryBitStream() {
             std::free(mBuffer);
         };
 
@@ -38,7 +38,7 @@ class InputMemoryStream {
         
 };
 
-void InputMemoryStream::Read(void* outData, size_t inByteCount) {
+void InputMemoryBitStream::Read(void* outData, size_t inByteCount) {
     uint32_t thresholdCapacity = mHead + static_cast<uint32_t>(inByteCount);
     if (thresholdCapacity > mCapacity) {
         throw std::runtime_error("InputMemoryStream::Read - not enough data to read");

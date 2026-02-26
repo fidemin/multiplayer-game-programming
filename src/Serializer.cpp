@@ -1,7 +1,7 @@
 #pragma once
-#include "OutputMemoryStream.cpp"
+#include "OutputMemoryBitStream.cpp"
 
 class Serializer {
     public:
-        virtual void Serialize(OutputMemoryStream& inStream) const = 0;
+        virtual void Serialize(OutputMemoryBitStream& inStream) const = 0;
 };

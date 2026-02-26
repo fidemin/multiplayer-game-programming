@@ -6,12 +6,12 @@
 #include <string>
 #include "ErrorUtil.cpp"
 
-class OutputMemoryStream {
+class OutputMemoryBitStream {
     public:
-        OutputMemoryStream(): mBuffer(nullptr), mHead(0), mCapacity(0) {
+        OutputMemoryBitStream(): mBuffer(nullptr), mHead(0), mCapacity(0) {
             ReallocBuffer(32); // start with 32 bytes
         }
-        ~OutputMemoryStream() {
+        ~OutputMemoryBitStream() {
             free(mBuffer);
         }
 
@@ -37,7 +37,7 @@ class OutputMemoryStream {
         void ReallocBuffer(uint32_t inNewLength);
 };
 
-void OutputMemoryStream::ReallocBuffer(uint32_t inNewLength) {
+void OutputMemoryBitStream::ReallocBuffer(uint32_t inNewLength) {
     char* backup = mBuffer;
 
     mBuffer = static_cast<char*>(realloc(mBuffer, inNewLength));
@@ -48,7 +48,7 @@ void OutputMemoryStream::ReallocBuffer(uint32_t inNewLength) {
     mCapacity = inNewLength;
 }
 
-void OutputMemoryStream::Write(const void* inData, size_t inByteCount) {
+void OutputMemoryBitStream::Write(const void* inData, size_t inByteCount) {
     uint32_t requiredCapacity = mHead + static_cast<uint32_t>(inByteCount);
     uint32_t newCapacity = mCapacity;
 

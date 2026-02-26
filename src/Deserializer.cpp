@@ -1,7 +1,7 @@
 #pragma once
-#include "InputMemoryStream.cpp"
+#include "InputMemoryBitStream.cpp"
 
 class Deserializer {
     public:
-        virtual void Deserialize(InputMemoryStream& inStream) = 0;
+        virtual void Deserialize(InputMemoryBitStream& inStream) = 0;
 };
