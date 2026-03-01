@@ -1,4 +1,4 @@
-
+#pragma once
 #include <cstdint>
 #include "OutputMemoryBitStream.cpp"
 #include "InputMemoryBitStream.cpp"

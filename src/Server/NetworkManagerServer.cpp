@@ -12,14 +12,15 @@ class NetworkManagerServer : public NetworkManager {
         void ProcessPacket(InputMemoryBitStream& inStream, SocketAddress& fromAddress);
     private:
         std::unordered_map<SocketAddress, ClientProxy*> mClientAddressToProxyMap;
+        uint32_t mNextPlayerId = 1;
+        LinkingContext mLinkingContext = LinkingContext();
 
         void HandlePacketFromNewClient(InputMemoryBitStream& inStream, const SocketAddress& fromAddress);
         void HandlePacketFromExistingClient(InputMemoryBitStream& inStream, ClientProxy* clientProxy);
         void SendAckPacket(const SocketAddress& toAddress, ClientProxy* clientProxy);
 
         uint32_t GenerateNewPlayerId() {
-            static uint32_t nextPlayerId = 1; // start from 1, reserve 0 for invalid player ID
-            return nextPlayerId++;
+            return mNextPlayerId++;
         }
 };
 
@@ -46,7 +47,7 @@ void NetworkManagerServer::HandlePacketFromNewClient(InputMemoryBitStream& inStr
 
         if (mClientAddressToProxyMap.find(fromAddress) == mClientAddressToProxyMap.end()) {
             uint32_t newPlayerId = GenerateNewPlayerId();
-            ClientProxy* newClient = new ClientProxy(fromAddress, playerName, newPlayerId);
+            ClientProxy* newClient = new ClientProxy(fromAddress, playerName, newPlayerId, &mLinkingContext);
             mClientAddressToProxyMap[fromAddress] = newClient;
         } else {
             printf("Client with address %s already exists, ignoring sync packet\n", fromAddress.ToString().c_str());

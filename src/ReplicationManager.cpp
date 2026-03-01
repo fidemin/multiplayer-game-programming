@@ -1,4 +1,4 @@
-
+#pragma once
 #include <unordered_set>
 #include "LinkingContext.cpp"
 #include "BitsHelper.cpp"
@@ -21,11 +21,13 @@ class ReplicationManager {
         std::unordered_set<GameObject*> GetObjectsInWorld() const {
             return mReplicatedObjects;
         }
+
+    protected:
+        LinkingContext* mLinkingContext;
     
     private:
         void ReplicateGameObject(OutputMemoryBitStream& inStream, GameObject* inGameObject);
         GameObject* RecieveGameObject(InputMemoryBitStream& inStream);
-        LinkingContext* mLinkingContext;
         std::unordered_set<GameObject*> mReplicatedObjects;
 };
 
