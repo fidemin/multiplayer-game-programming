@@ -1,8 +1,11 @@
+#pragma once
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <string>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 using namespace std;
 
@@ -22,6 +25,15 @@ class SocketAddress {
         size_t GetSize() const {
             return sizeof(mSockAddr);
         }
+
+        string ToString() const {
+            char buffer[INET_ADDRSTRLEN];
+            const sockaddr_in* addr = reinterpret_cast<const sockaddr_in*>(&mSockAddr);
+            inet_ntop(AF_INET, &addr->sin_addr, buffer, sizeof(buffer));
+            uint16_t port = ntohs(addr->sin_port);
+            return string(buffer) + ":" + to_string(port);
+        }
+
     private:
         friend class UDPSocket;
         friend class TCPSocket;
@@ -30,6 +42,7 @@ class SocketAddress {
         sockaddr_in* GetAsSockAddrIn() {
             return reinterpret_cast<sockaddr_in*>(&mSockAddr);
         }
+
 };
 
 using SocketAddressPtr = shared_ptr<SocketAddress>;

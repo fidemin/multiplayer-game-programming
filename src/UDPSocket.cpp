@@ -1,3 +1,5 @@
+#pragma once
+
 #include <memory>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -10,7 +12,7 @@ using namespace std;
 
 class UDPSocket {
 public:
-    static UDPSocketPtr Create() {
+    static shared_ptr<UDPSocket> Create() {
         int socket = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
         if (socket < 0) {
@@ -18,7 +20,7 @@ public:
             return nullptr;
         }
 
-        return make_shared<UDPSocket>(socket);
+        return shared_ptr<UDPSocket>(new UDPSocket(socket));
     }
     ~UDPSocket();
     int Bind(const SocketAddress& bindAddress);
