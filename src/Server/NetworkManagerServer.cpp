@@ -5,28 +5,32 @@
 #include "../SocketAddress.cpp"
 #include "../NetworkManager.cpp"
 #include "../InputMemoryBitStream.cpp"
+#include "ClientProxy.cpp"
 
 class NetworkManagerServer : public NetworkManager {
     public:
-        void ProcessPacket(InputMemoryBitStream& inStream, const SocketAddress& fromAddress);
+        void ProcessPacket(InputMemoryBitStream& inStream, SocketAddress& fromAddress);
     private:
-        std::unordered_map<const SocketAddress*, uint32_t> mClientAddressToIdMap;
-        std::unordered_map<uint32_t, const SocketAddress*> mClientIdToAddressMap;
+        std::unordered_map<SocketAddress, ClientProxy*> mClientAddressToProxyMap;
 
         void HandlePacketFromNewClient(InputMemoryBitStream& inStream, const SocketAddress& fromAddress);
-        void HandlePacketFromExistingClient(InputMemoryBitStream& inStream, uint32_t clientId);
-        // TODO: implement SendAckPacket
-        void SendAckPacket(const SocketAddress& toAddress);
+        void HandlePacketFromExistingClient(InputMemoryBitStream& inStream, ClientProxy* clientProxy);
+        void SendAckPacket(const SocketAddress& toAddress, ClientProxy* clientProxy);
+
+        uint32_t GenerateNewPlayerId() {
+            static uint32_t nextPlayerId = 1; // start from 1, reserve 0 for invalid player ID
+            return nextPlayerId++;
+        }
 };
 
-void NetworkManagerServer::ProcessPacket(InputMemoryBitStream& inStream, const SocketAddress& fromAddress) {
+void NetworkManagerServer::ProcessPacket(InputMemoryBitStream& inStream, SocketAddress& fromAddress) {
     printf("NetworkManagerServer::ProcessPacket - Received packet from %s\n", fromAddress.ToString().c_str());
-    auto it = mClientAddressToIdMap.find(&fromAddress);
-    if (it == mClientAddressToIdMap.end()) {
+    auto it = mClientAddressToProxyMap.find(fromAddress);
+    if (it == mClientAddressToProxyMap.end()) {
         HandlePacketFromNewClient(inStream, fromAddress);
     } else {
-        uint32_t clientId = it->second;
-        HandlePacketFromExistingClient(inStream, clientId);
+        ClientProxy* clientProxy = it->second;
+        HandlePacketFromExistingClient(inStream, clientProxy);
     };
 }
 
@@ -39,7 +43,19 @@ void NetworkManagerServer::HandlePacketFromNewClient(InputMemoryBitStream& inStr
     if (packetType == kSyncCC) {
         std::string playerName;
         inStream.Read(playerName);
-        SendAckPacket(fromAddress);
+
+        if (mClientAddressToProxyMap.find(fromAddress) == mClientAddressToProxyMap.end()) {
+            uint32_t newPlayerId = GenerateNewPlayerId();
+            ClientProxy* newClient = new ClientProxy(fromAddress, playerName, newPlayerId);
+            mClientAddressToProxyMap[fromAddress] = newClient;
+        } else {
+            printf("Client with address %s already exists, ignoring sync packet\n", fromAddress.ToString().c_str());
+        }
+
+        ClientProxy* clientProxy = mClientAddressToProxyMap[fromAddress];
+
+        SendAckPacket(fromAddress, clientProxy);
+
     } else {
         std::string errorMessage = "Received unexpected packet type from new client with address: " + fromAddress.ToString();
         std::wstring waddr(errorMessage.begin(), errorMessage.end());
@@ -47,15 +63,14 @@ void NetworkManagerServer::HandlePacketFromNewClient(InputMemoryBitStream& inStr
     }
 }
 
-void NetworkManagerServer::HandlePacketFromExistingClient(InputMemoryBitStream& inStream, uint32_t clientId) {
+void NetworkManagerServer::HandlePacketFromExistingClient(InputMemoryBitStream& inStream, ClientProxy* clientProxy) {
     // implement this
 };
 
 
-void NetworkManagerServer::SendAckPacket(const SocketAddress& toAddress) {
+void NetworkManagerServer::SendAckPacket(const SocketAddress& toAddress, ClientProxy* clientProxy) {
     OutputMemoryBitStream outStream;
     outStream.Write(kAckedCC);
-    // TODO: return actual client id
-    outStream.Write(static_cast<uint32_t>(0)); // placeholder client ID
+    outStream.Write(clientProxy->GetPlayerId());
     SendPacket(outStream, toAddress);
 }

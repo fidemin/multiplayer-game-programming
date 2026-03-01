@@ -18,6 +18,14 @@ class SocketAddress {
             GetAsSockAddrIn()->sin_port = htons(inPort);
         }
 
+        bool operator==( const SocketAddress& inOther ) const
+        {
+            // Two SocketAddress instances are considered equal if they have the same address family, IP address, and port number.
+            return ( mSockAddr.sa_family == AF_INET &&
+                    ( GetIP4Ref() == inOther.GetIP4Ref() ) &&
+                    GetAsSockAddrIn()->sin_port == inOther.GetAsSockAddrIn()->sin_port );
+        }
+
         SocketAddress(const sockaddr& inSockAddr) {
             memcpy(&mSockAddr, &inSockAddr, sizeof(mSockAddr));
         }
@@ -37,12 +45,33 @@ class SocketAddress {
     private:
         friend class UDPSocket;
         friend class TCPSocket;
+        friend struct std::hash<SocketAddress>;
         sockaddr mSockAddr;
 
         sockaddr_in* GetAsSockAddrIn() {
             return reinterpret_cast<sockaddr_in*>(&mSockAddr);
         }
 
+        const sockaddr_in* GetAsSockAddrIn() const {
+            return reinterpret_cast<const sockaddr_in*>(&mSockAddr);
+        }
+
+        uint32_t GetIP4Ref() const {
+            return GetAsSockAddrIn()->sin_addr.s_addr;
+        }
+
 };
 
 using SocketAddressPtr = shared_ptr<SocketAddress>;
+
+namespace std {
+    template<>
+    struct hash<SocketAddress> {
+        size_t operator()(const SocketAddress& addr) const {
+            const sockaddr_in* in = reinterpret_cast<const sockaddr_in*>(&addr.mSockAddr);
+            size_t h1 = hash<uint32_t>()(in->sin_addr.s_addr);
+            size_t h2 = hash<uint16_t>()(in->sin_port);
+            return h1 ^ (h2 << 16);
+        }
+    };
+}
