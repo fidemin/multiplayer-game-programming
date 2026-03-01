@@ -12,7 +12,9 @@ public:
 };
 
 void SocketUtil::ReportError(const wchar_t* inOperationDesc) {
-    wprintf(L"%s failed with error: %d\n", inOperationDesc, GetLastError());
+    // this code only prints the first character of the wide string, which is not correct. We should use %ls to print the entire wide string.
+    // wprintf(L"%s failed with error: %d\n", inOperationDesc, GetLastError());
+    printf("%ls failed with error: %d\n", inOperationDesc, GetLastError());
 }
 
 int SocketUtil::GetLastError() {

@@ -36,11 +36,11 @@ bool NetworkManager::Initialize(uint16_t inPort) {
     }
     const SocketAddress bindAddress = SocketAddress(INADDR_ANY, inPort);
 
+    mSocket->SetNonBlockingMode(true);
     if (mSocket->Bind(bindAddress) < 0) {
         ErrorUtil::ReportError(L"NetworkManager::Initialize - Failed to bind UDP socket\n");
         return false;
     }
-
     return true;
 }
 

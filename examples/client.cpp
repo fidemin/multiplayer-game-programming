@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
         if (bytesReceived > 0) {
             InputMemoryBitStream inStream(buffer, bytesReceived * 8);
             client.Read(inStream);
-        } else {
+        } else if (bytesReceived < 0) {
             printf("Failed to receive packet\n");
         }
     }

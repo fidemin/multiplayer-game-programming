@@ -72,9 +72,14 @@ int UDPSocket::ReceiveFrom(void* buffer, int length, SocketAddress& fromAddress)
         return bytesReceived;
     }
 
-    SocketUtil::ReportError(L"UDPSocket::ReceiveFrom");
-    // return negative value to indicate failure, and the value is the error code
-    return -SocketUtil::GetLastError();
+    int err = SocketUtil::GetLastError();
+    // EAGAIN and EWOULDBLOCK are not really errors, they just indicate that there is no data to read in non-blocking mode. We should not treat them as errors.
+    if (err != EAGAIN && err != EWOULDBLOCK) {
+        SocketUtil::ReportError(L"UDPSocket::ReceiveFrom");
+        return -err;
+    }
+    // no data to read, but not an error
+    return 0;
 }
 
 int UDPSocket::SetNonBlockingMode(bool shouldBeNonBlocking) {
