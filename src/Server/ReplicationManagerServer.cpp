@@ -29,34 +29,36 @@ void ReplicationManagerServer::ProcessPendingCommands(OutputMemoryBitStream& out
 
     int maxCommandsPerPacket = 10;
 
-    while (!mPendingCommands.empty() && maxCommandsPerPacket-- > 0) {
-         if (mPendingCommands.empty()) {
-             ErrorUtil::ReportError(L"ReplicationManagerServer::ProcessPendingCommands - No more pending commands to process\n");
-             break;
-         }
-         ReplicationCommand command = mPendingCommands.front();
+    // Collect valid commands first so we know the exact count before writing it
+    std::vector<std::pair<ReplicationCommand, GameObject*>> validCommands;
+    int processed = 0;
+    while (!mPendingCommands.empty() && processed++ < maxCommandsPerPacket) {
+        ReplicationCommand command = mPendingCommands.front();
+        mPendingCommands.pop();
+        GameObject* gameObject = mLinkingContext->GetGameObject(command.networkId);
+        if (gameObject) {
+            validCommands.push_back({command, gameObject});
+        } else {
+            ErrorUtil::ReportError((L"ReplicationManagerServer::ProcessPendingCommands - GameObject not found for network ID: " + std::to_wstring(command.networkId)).c_str());
+        }
+    }
 
-         GameObject* gameObject = mLinkingContext->GetGameObject(command.networkId);
-         if (!gameObject) {
-             ErrorUtil::ReportError((L"ReplicationManagerServer::ProcessPendingCommands - GameObject not found for network ID: " + std::to_wstring(command.networkId)).c_str());   
-             mPendingCommands.pop(); // Remove the command from the queue even if the game object is not found to prevent infinite loop
-             continue;
-         }
+    outStream.Write(static_cast<uint32_t>(validCommands.size()));
 
-         switch (command.action) {
-             case RA_Create:
-                 ReplicateCreate(outStream, gameObject);
-                 break;
-             case RA_Update:
-                 ReplicateUpdate(outStream, gameObject);
-                 break;
-             case RA_Destroy:
-                 ReplicateDestroy(outStream, gameObject);
-                 break;
-             default:
-                 ErrorUtil::ReportError((L"ReplicationManagerServer::ProcessPendingCommands - Unknown replication action: " + std::to_wstring(command.action)).c_str());
-                 break;
-         }
-         mPendingCommands.pop();
+    for (auto& pair : validCommands) {
+        switch (pair.first.action) {
+            case RA_Create:
+                ReplicateCreate(outStream, pair.second);
+                break;
+            case RA_Update:
+                ReplicateUpdate(outStream, pair.second);
+                break;
+            case RA_Destroy:
+                ReplicateDestroy(outStream, pair.second);
+                break;
+            default:
+                ErrorUtil::ReportError((L"ReplicationManagerServer::ProcessPendingCommands - Unknown replication action: " + std::to_wstring(pair.first.action)).c_str());
+                break;
+        }
     }
 }

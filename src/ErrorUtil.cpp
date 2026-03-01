@@ -12,7 +12,7 @@ public:
 };
 
 void ErrorUtil::ReportError(const wchar_t* inOperationDesc) {
-    wprintf(L"%s failed with error: %d\n", inOperationDesc, GetLastError());
+    wprintf(L"%ls failed with error: %d\n", inOperationDesc, GetLastError());
 }
 
 int ErrorUtil::GetLastError() {

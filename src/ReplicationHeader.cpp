@@ -13,7 +13,7 @@ enum ReplicationAction {
 
 class ReplicationHeader {
     public:
-        ReplicationHeader(){};
+        ReplicationHeader() {};
         ReplicationHeader(ReplicationAction inAction, uint32_t inNetworkId, uint32_t inClassId=0) : 
         mAction(inAction), mNetworkId(inNetworkId), mClassId(inClassId) 
         {}
@@ -30,6 +30,10 @@ class ReplicationHeader {
         }
 
         void Read(InputMemoryBitStream& inStream) {
+            // initialize with zeros to all bytes of mAction before partial bit read
+            // Because enum size is usually 4 bytes, but the actual bits received for mAction may be less than 32 bits
+            // we need to clear the remaining bits to avoid having garbage values in mAction after reading from the stream. 
+            mAction = RA_Create; 
             inStream.ReadBits(&mAction, GetRequiredBits(RA_MAX));
             inStream.Read(mNetworkId);
 

@@ -19,6 +19,15 @@ public:
         }
 
     uint32_t GetPlayerId() const { return mPlayerId; }
+
+    void QueueCreate(uint32_t networkId) {
+        mReplicationManagerServer.AddReplicationCommand(networkId, RA_Create);
+    }
+
+    void WriteReplicationData(OutputMemoryBitStream& outStream) {
+        mReplicationManagerServer.ProcessPendingCommands(outStream);
+    }
+
 private:
     SocketAddress mSocketAddress;
     std::string mPlayerName;

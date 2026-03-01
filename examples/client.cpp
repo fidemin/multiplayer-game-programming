@@ -32,6 +32,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    RegisterGameObjectCreationFunctions();
+
     printf("Connecting to %s:%d as %s\n", serverIp, serverPort, playerName);
 
     // Send sync packet to server

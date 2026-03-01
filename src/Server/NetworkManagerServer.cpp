@@ -10,8 +10,26 @@
 class NetworkManagerServer : public NetworkManager {
     public:
         void ProcessPacket(InputMemoryBitStream& inStream, SocketAddress& fromAddress);
+
+        void SendReplicationPacket(OutputMemoryBitStream& inStream, const SocketAddress& toAddress);
+
+        void AddWorldObject(GameObject* obj) {
+            mLinkingContext.GetId(obj, true); // registers obj in linking context
+            mWorldObjects.push_back(obj);
+        }
+
+        void SendReplicationDataToAllClients() {
+            for (auto& pair : mClientAddressToProxyMap) {
+                OutputMemoryBitStream outStream;
+                outStream.Write(kStateCC);
+                pair.second->WriteReplicationData(outStream);
+                SendPacket(outStream, pair.first);
+            }
+        }
+
     private:
         std::unordered_map<SocketAddress, ClientProxy*> mClientAddressToProxyMap;
+        std::vector<GameObject*> mWorldObjects;
         uint32_t mNextPlayerId = 1;
         LinkingContext mLinkingContext = LinkingContext();
 
@@ -48,6 +66,11 @@ void NetworkManagerServer::HandlePacketFromNewClient(InputMemoryBitStream& inStr
         if (mClientAddressToProxyMap.find(fromAddress) == mClientAddressToProxyMap.end()) {
             uint32_t newPlayerId = GenerateNewPlayerId();
             ClientProxy* newClient = new ClientProxy(fromAddress, playerName, newPlayerId, &mLinkingContext);
+            // create all existing world objects for the new client for first time synchronization
+            for (GameObject* obj : mWorldObjects) {
+                printf("NetworkManagerServer::HandlePacketFromNewClient - Queuing create for object with network ID %u for new client %s\n", mLinkingContext.GetId(obj, false), playerName.c_str());
+                newClient->QueueCreate(mLinkingContext.GetId(obj, false));
+            }
             mClientAddressToProxyMap[fromAddress] = newClient;
         } else {
             printf("Client with address %s already exists, ignoring sync packet\n", fromAddress.ToString().c_str());
@@ -74,4 +97,16 @@ void NetworkManagerServer::SendAckPacket(const SocketAddress& toAddress, ClientP
     outStream.Write(kAckedCC);
     outStream.Write(clientProxy->GetPlayerId());
     SendPacket(outStream, toAddress);
+}
+
+void NetworkManagerServer::SendReplicationPacket(OutputMemoryBitStream& inStream, const SocketAddress& toAddress) {
+    inStream.Write(kStateCC);
+    auto it = mClientAddressToProxyMap.find(toAddress);
+    if (it != mClientAddressToProxyMap.end()) {
+        ClientProxy* clientProxy = it->second;
+        clientProxy->WriteReplicationData(inStream);
+        SendPacket(inStream, toAddress);
+    } else {
+        printf("No client proxy found for address %s, cannot send replication packet\n", toAddress.ToString().c_str());
+    }
 }
