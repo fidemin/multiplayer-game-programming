@@ -20,7 +20,7 @@ class NetworkManagerServer : public NetworkManager {
 };
 
 void NetworkManagerServer::ProcessPacket(InputMemoryBitStream& inStream, const SocketAddress& fromAddress) {
-    wprintf(L"NetworkManagerServer::ProcessPacket - Received packet from %s\n", fromAddress.ToString().c_str());
+    printf("NetworkManagerServer::ProcessPacket - Received packet from %s\n", fromAddress.ToString().c_str());
     auto it = mClientAddressToIdMap.find(&fromAddress);
     if (it == mClientAddressToIdMap.end()) {
         HandlePacketFromNewClient(inStream, fromAddress);
@@ -34,15 +34,15 @@ void NetworkManagerServer::HandlePacketFromNewClient(InputMemoryBitStream& inStr
     uint32_t packetType;
     inStream.Read(packetType);
 
-    wprintf(L"NetworkManagerServer::HandlePacketFromNewClient - Received packet type %d from new client with address: %s\n", packetType, fromAddress.ToString().c_str());
+    printf("NetworkManagerServer::HandlePacketFromNewClient - Received packet type %d from new client with address: %s\n", packetType, fromAddress.ToString().c_str());
 
     if (packetType == kSyncCC) {
-        string playerName;
+        std::string playerName;
         inStream.Read(playerName);
         SendAckPacket(fromAddress);
     } else {
-        string errorMessage = "Received unexpected packet type from new client with address: " + fromAddress.ToString();
-        wstring waddr(errorMessage.begin(), errorMessage.end());
+        std::string errorMessage = "Received unexpected packet type from new client with address: " + fromAddress.ToString();
+        std::wstring waddr(errorMessage.begin(), errorMessage.end());
         ErrorUtil::ReportError(waddr.c_str());
     }
 }

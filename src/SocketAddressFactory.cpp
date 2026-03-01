@@ -5,6 +5,7 @@
 using namespace std;
 
 class SocketAddressFactory {
+public:
     static SocketAddressPtr CreateIPv4FromString(const string& inString) {
         auto pos = inString.find(':');
         string host, port;

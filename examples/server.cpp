@@ -23,9 +23,12 @@ int main(int argc, char* argv[]) {
     while (true) {
         SocketAddress fromAddress(INADDR_ANY, 0);
         int bytesReceived = server.ReceiveFrom(buffer, BUFFER_SIZE, fromAddress);
+        printf("Received %d bytes from %s\n", bytesReceived, fromAddress.ToString().c_str());
         if (bytesReceived > 0) {
             InputMemoryBitStream inStream(buffer, bytesReceived * 8);
             server.ProcessPacket(inStream, fromAddress);
+        } else {
+            printf("Failed to receive packet\n");
         }
     }
 

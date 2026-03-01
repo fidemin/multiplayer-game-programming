@@ -43,7 +43,7 @@ bool NetworkManagerClient::Initialize(uint16_t inPort, const std::string& inName
 
 
 void NetworkManagerClient::Send() {
-    wprintf(L"NetworkManagerClient::Send - Current state: %d\n", mState);
+    printf("NetworkManagerClient::Send - Current state: %d\n", mState);
     if (mState == NCS_InSync) {
         SendSync();
     }
@@ -54,7 +54,7 @@ void NetworkManagerClient::Read(InputMemoryBitStream& inStream) {
     uint32_t packetType;
     inStream.Read(packetType);
 
-    wprintf(L"NetworkManagerClient::Read - Received packet type %d\n", packetType);
+    printf("NetworkManagerClient::Read - Received packet type %d\n", packetType);
 
     switch (packetType) {
         case kAckedCC: {
@@ -84,9 +84,7 @@ void NetworkManagerClient::HandleAckedPacket(InputMemoryBitStream& inStream) {
 
         mPlayerId = playerId;
         mState = NCS_Connected;
-        wprintf(L"Received ACK from server. Assigned player ID: %u\n", mPlayerId);
+        printf("Received ACK from server. Assigned player ID: %u\n", mPlayerId);
     }
 };
-
-
 
