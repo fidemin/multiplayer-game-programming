@@ -1,6 +1,6 @@
 // client.cpp - Simple UDP client using NetworkManagerClient
 //
-// Build: g++ -std=c++14 -o client.o examples/client.cpp
+// Build: g++ -std=c++17 -o client.o examples/client.cpp
 // Usage: ./client.o [server_ip] [server_port] [player_name]
 
 #include <cstdio>

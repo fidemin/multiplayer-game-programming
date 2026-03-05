@@ -1,6 +1,6 @@
 // robocat_serialization.cpp - Demonstrates RoboCat serialization with memory streams
 //
-// Build: g++ -std=c++14 -o robocat_serialization.o examples/robocat_serialization.cpp
+// Build: g++ -std=c++17 -o robocat_serialization.o examples/robocat_serialization.cpp
 // Usage: ./robocat_serialization.o
 //
 // Shows how a sender writes a RoboCat into an OutputMemoryStream and a receiver

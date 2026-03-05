@@ -1,6 +1,6 @@
 // echo_udp_server.cpp - Simple UDP echo server
 //
-// Build: g++ -std=c++14 -o echo_udp_server.o examples/echo_udp_server.cpp
+// Build: g++ -std=c++17 -o echo_udp_server.o examples/echo_udp_server.cpp
 // Usage:
 //   Server: ./echo_udp_server.o [port]
 //   Client: nc -u localhost 8080

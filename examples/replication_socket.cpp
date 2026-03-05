@@ -1,6 +1,6 @@
 // replication_socket.cpp - Demonstrates ReplicationManager send and receive over a socket pair
 //
-// Build: g++ -std=c++14 -o replication_socket.o examples/replication_socket.cpp
+// Build: g++ -std=c++17 -o replication_socket.o examples/replication_socket.cpp
 // Usage: ./replication_socket.o
 //
 // Uses socketpair() to create a connected pair of file descriptors. The sender

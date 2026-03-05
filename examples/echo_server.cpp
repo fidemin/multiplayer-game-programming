@@ -1,6 +1,6 @@
 // echo_server.cpp - Sample demonstrating SocketSelectUtil for a multi-client echo server
 //
-// Build: g++ -std=c++14 -o echo_server.o examples/echo_server.cpp
+// Build: g++ -std=c++17 -o echo_server.o examples/echo_server.cpp
 // Usage:
 //   Server: ./echo_server.o [buffer_size]
 //   Client: nc localhost 8080

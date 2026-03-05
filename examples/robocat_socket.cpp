@@ -1,6 +1,6 @@
 // robocat_socket.cpp - Demonstrates GameObjectSocket send and receive over a socket pair
 //
-// Build: g++ -std=c++14 -o robocat_socket.o examples/robocat_socket.cpp
+// Build: g++ -std=c++17 -o robocat_socket.o examples/robocat_socket.cpp
 // Usage: ./robocat_socket.o
 //
 // Uses socketpair() to create a connected pair of file descriptors that act as

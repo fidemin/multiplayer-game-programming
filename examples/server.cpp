@@ -1,6 +1,6 @@
 // server.cpp - Simple UDP server using NetworkManagerServer
 //
-// Build: g++ -std=c++14 -o server.o examples/server.cpp
+// Build: g++ -std=c++17 -o server.o examples/server.cpp
 // Usage: ./server.o [port]
 
 #include <cstdio>
