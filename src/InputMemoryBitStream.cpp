@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <memory>
 #include <string>
+#include "BitsHelper.cpp"
 
 class InputMemoryBitStream {
     public:
@@ -35,6 +36,11 @@ class InputMemoryBitStream {
         template<typename T> void Read(T& outData, size_t inBitCount = sizeof(T) * 8) {
             static_assert(std::is_arithmetic<T>::value || std::is_enum<T>::value, "InputMemoryBitStream::ReadBits<T> requires an arithmetic or enum type");
             ReadBits(&outData, inBitCount);
+#if IS_LITTLE_ENDIAN
+            if (sizeof(T) == 2) outData = static_cast<T>(__builtin_bswap16(static_cast<uint16_t>(outData)));
+            else if (sizeof(T) == 4) outData = static_cast<T>(__builtin_bswap32(static_cast<uint32_t>(outData)));
+            else if (sizeof(T) == 8) outData = static_cast<T>(__builtin_bswap64(static_cast<uint64_t>(outData)));
+#endif
         }
 
         uint32_t GetRemainingBitCount() const { return mBitCapacity - mBitHead;}
@@ -46,24 +52,6 @@ class InputMemoryBitStream {
 };
 
 void InputMemoryBitStream::ReadBits(uint8_t& outData, size_t inBitCount) {
-    // uint32_t byteOffset = mBitHead >> 3;
-	// uint32_t bitOffset = mBitHead & 0x7;
-	
-	// outData = static_cast< uint8_t >( mBuffer[ byteOffset ] ) >> bitOffset;
-	
-	// uint32_t bitsFreeThisByte = 8 - bitOffset;
-
-    // // if the bits we need to read span across the current byte and the next byte, we need to read from the next byte as well
-	// if( bitsFreeThisByte < inBitCount )
-	// {
-	// 	//we need another byte
-	// 	outData |= static_cast< uint8_t >( mBuffer[ byteOffset + 1 ] ) << bitsFreeThisByte;
-	// }
-	
-	// //don't forget a mask so that we only read the bit we wanted...
-	// outData &= ( ~( 0x00ff << inBitCount ) );
-	
-	// mBitHead += inBitCount;
     uint32_t thresholdBitCapacity = mBitHead + static_cast<uint32_t>(inBitCount);
     if (thresholdBitCapacity > mBitCapacity) {
         throw std::runtime_error("InputMemoryBitStream::Read - not enough data to read");

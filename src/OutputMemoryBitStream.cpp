@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <memory>
 #include <string>
+#include "BitsHelper.cpp"
 
 class OutputMemoryBitStream {
     public:
@@ -21,9 +22,17 @@ class OutputMemoryBitStream {
             Write(stringLength);
             WriteBits(inString.c_str(), stringLength * 8);
         }
+
         template<typename T> void Write(const T& inData, size_t inBitCount = sizeof(T) * 8) {
             static_assert(std::is_arithmetic<T>::value || std::is_enum<T>::value, "OutputMemoryBitStream::WriteBits<T> requires an arithmetic or enum type");
-            WriteBits(&inData, inBitCount);
+
+            T dataToWrite = inData;
+#if IS_LITTLE_ENDIAN
+            if (sizeof(T) == 2) dataToWrite = static_cast<T>(__builtin_bswap16(static_cast<uint16_t>(inData)));
+            else if (sizeof(T) == 4) dataToWrite = static_cast<T>(__builtin_bswap32(static_cast<uint32_t>(inData)));
+            else if (sizeof(T) == 8) dataToWrite = static_cast<T>(__builtin_bswap64(static_cast<uint64_t>(inData)));
+#endif
+            WriteBits(&dataToWrite, inBitCount);
         }
 
         const char* GetBufferPtr() const { return mBuffer; }
