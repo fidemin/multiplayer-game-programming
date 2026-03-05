@@ -3,6 +3,7 @@
 #include "InFlightPacket.cpp"
 #include "OutputMemoryBitStream.cpp"
 #include "InputMemoryBitStream.cpp"
+#include "Timing.cpp"
 
 class AckRange {
     public:
@@ -61,6 +62,7 @@ class DeliveryNotificationManager {
         bool ProcessSequenceNumber(InputMemoryBitStream& inInputStream);
         void WritePendingAcks(OutputMemoryBitStream& inOutputStream);
         void ProcessAcks(InputMemoryBitStream& inInputStream);
+        void ProcessTimeoutPackets();
     private:
         PacketSequenceNumber mNextOutgoingSequenceNumber = 1;
         PacketSequenceNumber mNextExpectedSequenceNumber;
@@ -69,9 +71,11 @@ class DeliveryNotificationManager {
         uint32_t mDroppedPacketCount = 0;
         std::queue<InFlightPacket> mInFlightPackets;
         std::queue<AckRange> mPendingAcks;
+        uint64_t kAckTimeoutMs = 1000;
 
         void AddPendingAck(PacketSequenceNumber inSequenceNumber);
         void HandlePacketDeliverySuccess(InFlightPacket& inFlightPacket);
+        void HandleOldestPacketDeliveryFailureAndPop();
         void HandlePacketDeliveryFailure(InFlightPacket& inFlightPacket);
 };
 
@@ -137,16 +141,16 @@ void DeliveryNotificationManager::ProcessAcks(InputMemoryBitStream& inInputStrea
                 HandlePacketDeliverySuccess(nextInFlightPacket);
 
                 mInFlightPackets.pop();
-                return;
+                packetToCheck++;
             } else if (nextInFlightPacket.GetSequenceNumber() < packetToCheck) {
                 // missed inflight packet, so treat it as a failure
 
                 // Note: we need to make a copy of the packet before popping it from the queue
                 // because handling delivery failure may involve accessing data in the packet that would be destroyed after popping
-                auto copyOfNextInFlightPacket = nextInFlightPacket;
+                InFlightPacket copy = nextInFlightPacket;
                 mInFlightPackets.pop();
+                HandlePacketDeliveryFailure(copy);
 
-                HandlePacketDeliveryFailure(copyOfNextInFlightPacket);
             } else {
                 // inflight packet is newer than the acked packet, so move on to the next ack
                 // some acks are removed before processed for some reason (Maybe, timeout?)
@@ -164,4 +168,18 @@ void DeliveryNotificationManager::HandlePacketDeliverySuccess(InFlightPacket& in
 void DeliveryNotificationManager::HandlePacketDeliveryFailure(InFlightPacket& inFlightPacket) {
     mDroppedPacketCount++;
     inFlightPacket.HandleDeliveryFailure(this);
+}
+
+void DeliveryNotificationManager::ProcessTimeoutPackets() {
+    uint64_t timeoutTime = Timing::sInstance.GetTimeMS() - kAckTimeoutMs;
+    while (!mInFlightPackets.empty()) {
+        InFlightPacket& nextInFlightPacket = mInFlightPackets.front();
+        if (nextInFlightPacket.GetTimeDispatched() < timeoutTime) {
+            InFlightPacket copy = nextInFlightPacket;
+            mInFlightPackets.pop();
+            HandlePacketDeliveryFailure(copy);
+        } else {
+            break;
+        }
+    }
 }

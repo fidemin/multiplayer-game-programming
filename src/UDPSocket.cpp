@@ -35,7 +35,7 @@ private:
 using UDPSocketPtr = shared_ptr<UDPSocket>;
 
 int UDPSocket::Bind(const SocketAddress& bindAddress) {
-    int err = bind(mSocket, &bindAddress.mSockAddr, bindAddress.GetSize());
+    int err = ::bind(mSocket, &bindAddress.mSockAddr, bindAddress.GetSize());
 
     if (err == 0) {
         return 0;
