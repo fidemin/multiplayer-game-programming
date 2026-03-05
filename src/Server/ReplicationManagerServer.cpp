@@ -5,17 +5,19 @@
 #include "../ReplicationManager.cpp"
 #include "../ErrorUtil.cpp"
 #include "../BitsHelper.cpp"
+#include "../InFlightPacket.cpp"
 
 struct ReplicationCommand {
     uint32_t networkId;
     ReplicationAction action;
 };
 
+// ReplicationManagerServer: one per server-client connection. Each ClientProxy has its own ReplicationManagerServer to manage replication commands for that client. 
 class ReplicationManagerServer: public ReplicationManager {
     public:
         ReplicationManagerServer(LinkingContext* inLinkingContext) : ReplicationManager(inLinkingContext) {}
         void AddReplicationCommand(uint32_t networkId, ReplicationAction action);        
-        void ProcessPendingCommands(OutputMemoryBitStream& inStream);
+        void WritePendingCommands(OutputMemoryBitStream& inStream, InFlightPacket* inFlightPacket = nullptr);
     private:
         std::queue<ReplicationCommand> mPendingCommands;
 };
@@ -24,8 +26,8 @@ void ReplicationManagerServer::AddReplicationCommand(uint32_t networkId, Replica
     mPendingCommands.push({networkId, action});
 }
 
-void ReplicationManagerServer::ProcessPendingCommands(OutputMemoryBitStream& outStream) {
-    outStream.WriteBits(PT_ReplicationData, GetRequiredBits(PT_MAX));
+void ReplicationManagerServer::WritePendingCommands(OutputMemoryBitStream& outStream, InFlightPacket* inFlightPacket) {
+    // TODO: InFlightPacket can be used to track replication data sent with this packet.
 
     int maxCommandsPerPacket = 10;
 
@@ -39,7 +41,7 @@ void ReplicationManagerServer::ProcessPendingCommands(OutputMemoryBitStream& out
         if (gameObject) {
             validCommands.push_back({command, gameObject});
         } else {
-            ErrorUtil::ReportError((L"ReplicationManagerServer::ProcessPendingCommands - GameObject not found for network ID: " + std::to_wstring(command.networkId)).c_str());
+            ErrorUtil::ReportError((L"ReplicationManagerServer::WritePendingCommands - GameObject not found for network ID: " + std::to_wstring(command.networkId)).c_str());
         }
     }
 
@@ -57,7 +59,7 @@ void ReplicationManagerServer::ProcessPendingCommands(OutputMemoryBitStream& out
                 ReplicateDestroy(outStream, pair.second);
                 break;
             default:
-                ErrorUtil::ReportError((L"ReplicationManagerServer::ProcessPendingCommands - Unknown replication action: " + std::to_wstring(pair.first.action)).c_str());
+                ErrorUtil::ReportError((L"ReplicationManagerServer::WritePendingCommands - Unknown replication action: " + std::to_wstring(pair.first.action)).c_str());
                 break;
         }
     }

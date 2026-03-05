@@ -13,9 +13,9 @@ static const uint16_t CLIENT_PORT         = 0; // OS assigns port
 static const int      BUFFER_SIZE         = 4096;
 
 int main(int argc, char* argv[]) {
-    const char* serverIp   = (argc >= 2) ? argv[1] : DEFAULT_SERVER_IP;
-    uint16_t    serverPort = (argc >= 3) ? static_cast<uint16_t>(atoi(argv[2])) : DEFAULT_SERVER_PORT;
-    const char* playerName = (argc >= 4) ? argv[3] : "Player1";
+    const char* playerName = (argc >= 2) ? argv[1] : "Player";
+    const char* serverIp   = (argc >= 3) ? argv[2] : DEFAULT_SERVER_IP;
+    uint16_t    serverPort = (argc >= 4) ? static_cast<uint16_t>(atoi(argv[3])) : DEFAULT_SERVER_PORT;
 
     SocketAddressPtr serverAddressPtr = SocketAddressFactory::CreateIPv4FromString(
         string(serverIp) + ":" + to_string(serverPort));

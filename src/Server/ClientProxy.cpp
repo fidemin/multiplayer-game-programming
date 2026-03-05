@@ -3,6 +3,7 @@
 #include <string> 
 #include "../SocketAddress.cpp"
 #include "ReplicationManagerServer.cpp"
+#include "../DeliveryNotificationManager.cpp"
 
 class ClientProxy
 {
@@ -25,7 +26,9 @@ public:
     }
 
     void WriteReplicationData(OutputMemoryBitStream& outStream) {
-        mReplicationManagerServer.ProcessPendingCommands(outStream);
+        mDeliveryNotificationManager.WriteSequenceNumber(outStream);
+        mDeliveryNotificationManager.WritePendingAcks(outStream);
+        mReplicationManagerServer.WritePendingCommands(outStream);
     }
 
 private:
@@ -33,6 +36,7 @@ private:
     std::string mPlayerName;
     uint32_t mPlayerId;
     ReplicationManagerServer mReplicationManagerServer;
+    DeliveryNotificationManager mDeliveryNotificationManager;
 };
 
 

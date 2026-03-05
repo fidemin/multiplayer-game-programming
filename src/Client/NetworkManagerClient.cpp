@@ -5,6 +5,7 @@
 #include "../InputMemoryBitStream.cpp"
 #include "../NetworkManager.cpp"
 #include "../ReplicationManager.cpp"
+#include "../DeliveryNotificationManager.cpp"
 
 
 class NetworkManagerClient: public NetworkManager {
@@ -28,6 +29,7 @@ class NetworkManagerClient: public NetworkManager {
         uint32_t mPlayerId;
         std::string mPlayerName;
         LinkingContext mLinkingContext;
+        DeliveryNotificationManager mDeliveryNotificationManager;
 
         void SendSync();
         void HandleAckedPacket(InputMemoryBitStream& inStream);
@@ -103,45 +105,43 @@ void NetworkManagerClient::HandleAckedPacket(InputMemoryBitStream& inStream) {
 
 void NetworkManagerClient::HandleReplicationData(InputMemoryBitStream& inStream) {
     uint32_t packetType;
-    inStream.ReadBits(&packetType, GetRequiredBits(PT_MAX));
     printf("NetworkManagerClient::HandleReplicationData - Received replication data packet with type: %d\n", packetType);
 
     std::unordered_set<GameObject*> receivedObjects;
 
-    if (packetType == PT_ReplicationData) {
-        uint32_t commandCount;
-        inStream.Read(commandCount);
-        for (uint32_t i = 0; i < commandCount; ++i) {
-            ReplicationHeader header;
-            header.Read(inStream);
-            if (header.GetAction() == RA_Create) {
-                printf("Received create for object with network ID: %u, class ID: %u\n", header.GetNetworkId(), header.GetClassId());
-                GameObject* gameObject = ObjectCreationRegistry::GetInstance().CreateGameObject(header.GetClassId());
-                gameObject->Deserialize(inStream);
-                receivedObjects.insert(gameObject);
-            } else if (header.GetAction() == RA_Update) {
-                printf("Received update for object with network ID: %u\n", header.GetNetworkId());
-                GameObject* existingObject = mLinkingContext.GetGameObject(header.GetNetworkId());
-                if (existingObject) {
-                    existingObject->Deserialize(inStream);
-                    receivedObjects.insert(existingObject);
-                } else {
-                    ErrorUtil::ReportError((L"NetworkManagerClient::HandleReplicationData - Received update for non-existing object with network ID: " + std::to_wstring(header.GetNetworkId())).c_str());
-                }
-            } else if (header.GetAction() == RA_Destroy) {
-                GameObject* existingObject = mLinkingContext.GetGameObject(header.GetNetworkId());
-                if (existingObject) {
-                    printf("Received destroy for object with network ID: %u\n", header.GetNetworkId());
-                    mLinkingContext.RemoveGameObject(existingObject);
-                    existingObject->Destroy();
-                } else {
-                    ErrorUtil::ReportError((L"NetworkManagerClient::HandleReplicationData - Received destroy for non-existing object with network ID: " + std::to_wstring(header.GetNetworkId())).c_str());
-                }
+    // TODO: process acks and send pending acks back to server if necessary
+    mDeliveryNotificationManager.ProcessSequenceNumber(inStream);
+    mDeliveryNotificationManager.ProcessAcks(inStream);
+    uint32_t commandCount;
+    inStream.Read(commandCount);
+    for (uint32_t i = 0; i < commandCount; ++i) {
+        ReplicationHeader header;
+        header.Read(inStream);
+        if (header.GetAction() == RA_Create) {
+            printf("Received create for object with network ID: %u, class ID: %u\n", header.GetNetworkId(), header.GetClassId());
+            GameObject* gameObject = ObjectCreationRegistry::GetInstance().CreateGameObject(header.GetClassId());
+            gameObject->Deserialize(inStream);
+            receivedObjects.insert(gameObject);
+        } else if (header.GetAction() == RA_Update) {
+            printf("Received update for object with network ID: %u\n", header.GetNetworkId());
+            GameObject* existingObject = mLinkingContext.GetGameObject(header.GetNetworkId());
+            if (existingObject) {
+                existingObject->Deserialize(inStream);
+                receivedObjects.insert(existingObject);
             } else {
-                ErrorUtil::ReportError((L"NetworkManagerClient::HandleReplicationData - Received unknown replication action: " + std::to_wstring(header.GetAction())).c_str());
+                ErrorUtil::ReportError((L"NetworkManagerClient::HandleReplicationData - Received update for non-existing object with network ID: " + std::to_wstring(header.GetNetworkId())).c_str());
             }
+        } else if (header.GetAction() == RA_Destroy) {
+            GameObject* existingObject = mLinkingContext.GetGameObject(header.GetNetworkId());
+            if (existingObject) {
+                printf("Received destroy for object with network ID: %u\n", header.GetNetworkId());
+                mLinkingContext.RemoveGameObject(existingObject);
+                existingObject->Destroy();
+            } else {
+                ErrorUtil::ReportError((L"NetworkManagerClient::HandleReplicationData - Received destroy for non-existing object with network ID: " + std::to_wstring(header.GetNetworkId())).c_str());
+            }
+        } else {
+            ErrorUtil::ReportError((L"NetworkManagerClient::HandleReplicationData - Received unknown replication action: " + std::to_wstring(header.GetAction())).c_str());
         }
-    } else {
-        ErrorUtil::ReportError((L"NetworkManagerClient::HandleReplicationData - Received unknown replication packet type: " + std::to_wstring(packetType)).c_str());
     }
-}
+} 

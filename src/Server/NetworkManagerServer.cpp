@@ -6,7 +6,9 @@
 #include "../NetworkManager.cpp"
 #include "../InputMemoryBitStream.cpp"
 #include "ClientProxy.cpp"
+#include "ReplicationManagerServer.cpp"
 
+// ReplicationManagerServer: one per server. Shared by all client proxies to manage replication of world state to clients.
 class NetworkManagerServer : public NetworkManager {
     public:
         void ProcessPacket(InputMemoryBitStream& inStream, SocketAddress& fromAddress);
